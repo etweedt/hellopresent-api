@@ -1,20 +1,51 @@
 'use strict';
 
-const mongo = require('../repositories/mongoRepository');
+const userRepo = require('../repositories/userRepo');
 
-const getUserWishlist = async ctx => {
-  try {
-    const wishlist = await mongo.getWishlistForUser(ctx.params.id);
-    ctx.body = {
-      id: ctx.params.id,
-      wishlist
-    };
-  } catch (err) {
-    console.error(err);
-    throw err;
+const getUserHandler = async request => {
+  let user = await userRepo.get(request.vparams.id);
+
+  if (!user) {
+    user = await userRepo.create({
+      _id: request.vparams.id
+    });
   }
+
+  const response = JSON.parse(JSON.stringify(user));
+  response.id = user._id;
+  delete response._id;
+  delete response.__v;
+
+  return response;
+};
+
+const updateUserHandler = async request => {
+  const updated = await userRepo.update(
+    request.vparams.id,
+    request.vparams.user
+  );
+
+  const response = JSON.parse(JSON.stringify(updated));
+  response.id = updated._id;
+  delete response._id;
+  delete response.__v;
+
+  return response;
+};
+
+const removeUserHandler = async request => {
+  const removed = await userRepo.remove(request.vparams.id);
+
+  const response = JSON.parse(JSON.stringify(removed));
+  response.id = removed._id;
+  delete response._id;
+  delete response.__v;
+
+  return response;
 };
 
 module.exports = {
-  getUserWishlist
+  getUserHandler,
+  updateUserHandler,
+  removeUserHandler
 };
