@@ -1,17 +1,32 @@
 'use strict';
 
 const Koa = require('koa');
-const Router = require('koa-router');
-const {createRoutes} = require('./routes/routes');
+const BodyParser = require('koa-bodyparser');
+const ROUTER = require('./routes');
+const mongoRepo = require('./repositories/mongoRepository');
 
-const run = () => {
-  const app = new Koa();
-  const router = new Router();
-  createRoutes(router);
-  app.use(router.routes());
-  app.use(router.allowedMethods());
+const SERVER = new Koa();
 
-  app.listen(5000);
-};
+// Connect to database
+mongoRepo.connectToMongo()
+  .then(() => {
+    // middlewares
+    SERVER.use(BodyParser());
 
-run();
+    SERVER.use(async (ctx, next) => {
+      try {
+        return next();
+      } catch (err) {
+        console.error(err);
+        ctx.body = {message: 'Unexpected error.'};
+        ctx.status = 500;
+      }
+    });
+    SERVER.use(ROUTER.routes());
+
+    SERVER.listen(5000);
+  })
+  .catch(err => {
+    console.error(err);
+    process.exit(1);
+  });

@@ -1,24 +1,19 @@
 'use strict';
 
-const mongoRepo = require('../repositories/mongoRepo');
+const mongo = require('../repositories/mongoRepository');
 
-const getNonUserWishlists = async ctx => {};
-
-const addItemToUserWishlist = async ctx => {};
-
-const editUserWishlistItem = async ctx => {};
-
-const deleteUserWishlistItem = async ctx => {};
-
-const claimItem = async ctx => {};
-
-const unclaimItem = async ctx => {};
+const getAllWishlists = async ctx => {
+  try {
+    const wishlists = await mongo.getWishlistsForAllButUser(ctx.params.id);
+    ctx.body = {
+      wishlists
+    };
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};
 
 module.exports = {
-  getNonUserWishlists,
-  addItemToUserWishlist,
-  editUserWishlistItem,
-  deleteUserWishlistItem,
-  claimItem,
-  unclaimItem
+  getAllWishlists
 };
