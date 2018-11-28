@@ -8,6 +8,12 @@ const get = () => {
   });
 };
 
+const getById = id => {
+  return Wishlist.findById(id).catch(error => {
+    throw error;
+  });
+};
+
 const getForUser = userEmail => {
   return Wishlist.find({email: {$ne: userEmail}}).catch(error => {
     throw error;
@@ -47,6 +53,7 @@ const getClaims = userEmail => {
 
 module.exports = {
   get,
+  getById,
   getForUser,
   getUser,
   create,

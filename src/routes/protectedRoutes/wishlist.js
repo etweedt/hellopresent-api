@@ -53,6 +53,40 @@ const getUserClaimsFromWishlistSchema = {
   }
 };
 
+const claimItemSchema = {
+  'POST /wishlists/items/claim': {
+    properties: {
+      userId: {
+        type: 'string'
+      },
+      wishlistId: {
+        type: 'string'
+      },
+      itemId: {
+        type: 'string'
+      }
+    },
+    required: ['userId', 'wishlistId', 'itemId']
+  }
+};
+
+const unclaimItemSchema = {
+  'POST /wishlists/items/unclaim': {
+    properties: {
+      userId: {
+        type: 'string'
+      },
+      wishlistId: {
+        type: 'string'
+      },
+      itemId: {
+        type: 'string'
+      }
+    },
+    required: ['userId', 'wishlistId', 'itemId']
+  }
+};
+
 module.exports = [
   new Route('/wishlists', 'GET', null, null, wishlistHandlers.getWishlists),
   new Route(
@@ -82,5 +116,19 @@ module.exports = [
     null,
     getUserClaimsFromWishlistSchema,
     wishlistHandlers.getUserClaims
+  ),
+  new Route(
+    '/wishlists/items/claim',
+    'POST',
+    null,
+    claimItemSchema,
+    wishlistHandlers.claimItem
+  ),
+  new Route(
+    '/wishlists/items/unclaim',
+    'POST',
+    null,
+    unclaimItemSchema,
+    wishlistHandlers.unclaimItem
   )
 ];

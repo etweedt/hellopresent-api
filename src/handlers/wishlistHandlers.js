@@ -1,6 +1,7 @@
 'use strict';
 
 const wishlistRepo = require('../repositories/wishlistRepo');
+const Exception = require('../types/exception');
 
 const getWishlists = async () => {
   const wishlists = await wishlistRepo.get();
@@ -99,10 +100,78 @@ const getUserClaims = async request => {
   return response;
 };
 
+const claimItem = async request => {
+  const wishlist = await wishlistRepo.getById(request.vparams.wishlistId);
+  if (wishlist) {
+    const newList = JSON.parse(JSON.stringify(wishlist));
+    const found = newList.items.find(item => {
+      return item._id === request.vparams.itemId;
+    });
+
+    if (found) {
+      if (found.claimedBy) {
+        throw new Exception(409, 'Item already claimed');
+      }
+      found.claimedBy = request.vparams.userId;
+
+      const updatedWishlist = await wishlistRepo.update(newList.email, newList);
+
+      const response = {
+        wishlist: JSON.parse(JSON.stringify(updatedWishlist))
+      };
+
+      response.wishlist.id = updatedWishlist._id;
+      delete response.wishlist._id;
+      delete response.wishlist.__v;
+
+      return response;
+    } else {
+      throw new Error('Item not found in wishlist');
+    }
+  } else {
+    throw new Error('Wishlist not found');
+  }
+};
+
+const unclaimItem = async request => {
+  const wishlist = await wishlistRepo.getById(request.vparams.wishlistId);
+  if (wishlist) {
+    const newList = JSON.parse(JSON.stringify(wishlist));
+    const found = newList.items.find(item => {
+      return item._id === request.vparams.itemId;
+    });
+
+    if (found) {
+      if (!found.claimedBy) {
+        throw new Exception(409, 'Item is not currently claimed');
+      }
+      delete found.claimedBy;
+
+      const updatedWishlist = await wishlistRepo.update(newList.email, newList);
+
+      const response = {
+        wishlist: JSON.parse(JSON.stringify(updatedWishlist))
+      };
+
+      response.wishlist.id = updatedWishlist._id;
+      delete response.wishlist._id;
+      delete response.wishlist.__v;
+
+      return response;
+    } else {
+      throw new Error('Item not found in wishlist');
+    }
+  } else {
+    throw new Error('Wishlist not found');
+  }
+};
+
 module.exports = {
   getWishlists,
   getWishlistsVisibleByUser,
   getUserWishlist,
   updateUserWishlist,
-  getUserClaims
+  getUserClaims,
+  claimItem,
+  unclaimItem
 };
