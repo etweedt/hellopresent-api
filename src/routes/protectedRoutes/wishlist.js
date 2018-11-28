@@ -42,6 +42,17 @@ const updateUserWishlistSchema = {
   }
 };
 
+const getUserClaimsFromWishlistSchema = {
+  'GET /wishlists/claims/:id': {
+    properties: {
+      id: {
+        type: 'string'
+      }
+    },
+    required: ['id']
+  }
+};
+
 module.exports = [
   new Route('/wishlists', 'GET', null, null, wishlistHandlers.getWishlists),
   new Route(
@@ -64,5 +75,12 @@ module.exports = [
     null,
     updateUserWishlistSchema,
     wishlistHandlers.updateUserWishlist
+  ),
+  new Route(
+    '/wishlists/claims/:id',
+    'GET',
+    null,
+    getUserClaimsFromWishlistSchema,
+    wishlistHandlers.getUserClaims
   )
 ];

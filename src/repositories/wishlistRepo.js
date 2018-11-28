@@ -37,10 +37,19 @@ const update = (userEmail, newList) => {
   });
 };
 
+const getClaims = userEmail => {
+  return Wishlist.find({items: {$elemMatch: {claimedBy: userEmail}}}).catch(
+    error => {
+      throw error;
+    }
+  );
+};
+
 module.exports = {
   get,
   getForUser,
   getUser,
   create,
-  update
+  update,
+  getClaims
 };

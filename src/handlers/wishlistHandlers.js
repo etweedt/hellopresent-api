@@ -70,9 +70,39 @@ const updateUserWishlist = async request => {
   return response;
 };
 
+const getUserClaims = async request => {
+  const claims = await wishlistRepo.getClaims(request.vparams.id);
+
+  const response = {
+    claims: []
+  };
+
+  const lists = JSON.parse(JSON.stringify(claims));
+  lists.forEach(list => {
+    const newClaim = {
+      email: list.email,
+      id: list._id,
+      items: []
+    };
+
+    list.items.forEach(item => {
+      if (item.claimedBy === request.vparams.id) {
+        item.id = item._id;
+        delete item._id;
+        newClaim.items.push(item);
+      }
+    });
+
+    response.claims.push(newClaim);
+  });
+
+  return response;
+};
+
 module.exports = {
   getWishlists,
   getWishlistsVisibleByUser,
   getUserWishlist,
-  updateUserWishlist
+  updateUserWishlist,
+  getUserClaims
 };
