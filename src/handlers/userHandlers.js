@@ -44,8 +44,24 @@ const removeUserHandler = async request => {
   return response;
 };
 
+const getUserGroupHandler = async request => {
+  const group = await userRepo.findUsers(request.vparams.id);
+  
+  const response = {
+    members: JSON.parse(JSON.stringify(group))
+  };
+
+  response.members.forEach(member => {
+    member.id = member._id;
+    delete member._id;
+    delete member.__v;
+  });
+  return response;
+};
+
 module.exports = {
   getUserHandler,
   updateUserHandler,
-  removeUserHandler
+  removeUserHandler,
+  getUserGroupHandler
 };

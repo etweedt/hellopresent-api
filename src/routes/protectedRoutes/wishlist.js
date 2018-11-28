@@ -19,6 +19,9 @@ const getWishlistsVisibleByUserSchema = {
     properties: {
       id: {
         type: 'string'
+      },
+      group: {
+        type: 'string'
       }
     },
     required: ['id']

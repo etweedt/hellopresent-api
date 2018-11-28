@@ -26,9 +26,16 @@ const remove = id => {
   });
 };
 
+const findUsers = (id, group) => {
+  return User.find({_id: {$ne: id}, firstName: {$ne: null}}).catch(error => {
+    throw error;
+  });
+};
+
 module.exports = {
   get,
   create,
   update,
-  remove
+  remove,
+  findUsers
 };

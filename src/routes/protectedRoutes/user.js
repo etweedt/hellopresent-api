@@ -39,6 +39,20 @@ const removeUserSchema = {
   }
 };
 
+const getUsersGroupMembersSchema = {
+  'GET /users/group/:id': {
+    properties: {
+      id: {
+        type: 'string'
+      },
+      group: {
+        type: 'string'
+      }
+    },
+    required: ['id']
+  }
+};
+
 module.exports = [
   new Route(
     '/users/:id',
@@ -60,5 +74,12 @@ module.exports = [
     null,
     removeUserSchema,
     userHandlers.removeUserHandler
+  ),
+  new Route(
+    '/users/group/:id',
+    'GET',
+    null,
+    getUsersGroupMembersSchema,
+    userHandlers.getUserGroupHandler
   )
 ];
