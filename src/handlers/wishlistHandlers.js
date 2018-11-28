@@ -43,10 +43,12 @@ const getUserWishlist = async request => {
     wishlist = await wishlistRepo.create(request.vparams.id);
   }
 
-  const response = JSON.parse(JSON.stringify(wishlist));
-  response.id = wishlist._id;
-  delete response._id;
-  delete response.__v;
+  const response = {
+    wishlist: JSON.parse(JSON.stringify(wishlist))
+  };
+  response.wishlist.id = wishlist._id;
+  delete response.wishlist._id;
+  delete response.wishlist.__v;
 
   return response;
 };
