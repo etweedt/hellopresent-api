@@ -3,12 +3,21 @@
 const mongoose = require('mongoose');
 
 const GroupSchema = new mongoose.Schema({
-  _id: {
+  userId: {
     type: String,
-    trim: true,
     required: true,
+    trim: true,
     unique: true
-  }
+  },
+  members: [
+    {
+      email: {
+        type: String,
+        trim: true,
+        require: true
+      }
+    }
+  ]
 });
 
 const Group = mongoose.model('Group', GroupSchema);
