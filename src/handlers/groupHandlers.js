@@ -36,6 +36,14 @@ const getUserGroups = async request => {
 };
 
 const addGroupMember = async request => {
+  let userToAdd = await userRepo.get(request.vparams.memberId);
+  if (!userToAdd) {
+    throw new Exception(
+      409,
+      'The user you are attempting to add does not exist.'
+    );
+  }
+
   let group = await groupRepo.getByUserId(request.vparams.id);
   if (!group) {
     group = await groupRepo.create({
