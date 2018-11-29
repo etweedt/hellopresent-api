@@ -1,10 +1,11 @@
 'use strict';
 
 const groupRepo = require('../repositories/groupRepo');
+const userRepo = require('../repositories/userRepo');
 const Exception = require('../types/exception');
 
-const getUserGroups = async request => {
-  let group = await groupRepo.getByUserId(request.vparams.id);
+const getUserGroupsWithInfo = async groupId => {
+  let group = await groupRepo.getByUserId(groupId);
   if (!group) {
     group = await groupRepo.create({
       userId: request.vparams.id,
@@ -12,10 +13,24 @@ const getUserGroups = async request => {
     });
   }
 
-  const response = JSON.parse(JSON.stringify(group));
-  response.id = response._id;
-  delete response._id;
-  delete response.__v;
+  const alteredGroup = JSON.parse(JSON.stringify(group));
+
+  for (let member of alteredGroup.members) {
+    const memberInfo = await userRepo.get(member.email);
+    member.firstName = memberInfo.firstName;
+    member.lastName = memberInfo.lastName;
+    member.address = memberInfo.address;
+  }
+
+  alteredGroup.id = alteredGroup._id;
+  delete alteredGroup._id;
+  delete alteredGroup.__v;
+
+  return alteredGroup;
+};
+
+const getUserGroups = async request => {
+  const response = await getUserGroupsWithInfo(request.vparams.id);
 
   return response;
 };
@@ -41,14 +56,8 @@ const addGroupMember = async request => {
     throw new Exception(409, 'Member is already one of your friends.');
   }
 
-  const updated = await groupRepo.update(request.vparams.id, newGroup);
-  const response = JSON.parse(JSON.stringify(updated));
-
-  response.id = response._id;
-  delete response._id;
-  delete response.__v;
-
-  return response;
+  await groupRepo.update(request.vparams.id, newGroup);
+  return await getUserGroupsWithInfo(request.vparams.id);
 };
 
 const removeGroupMember = async request => {
@@ -71,14 +80,8 @@ const removeGroupMember = async request => {
     newGroup.members.splice(newGroup.members.indexOf(found), 1);
   }
 
-  const updated = await groupRepo.update(request.vparams.id, newGroup);
-  const response = JSON.parse(JSON.stringify(updated));
-
-  response.id = response._id;
-  delete response._id;
-  delete response.__v;
-
-  return response;
+  await groupRepo.update(request.vparams.id, newGroup);
+  return await getUserGroupsWithInfo(request.vparams.id);
 };
 
 module.exports = {
