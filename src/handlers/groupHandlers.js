@@ -17,9 +17,12 @@ const getUserGroupsWithInfo = async groupId => {
 
   for (let member of alteredGroup.members) {
     const memberInfo = await userRepo.get(member.email);
-    member.firstName = memberInfo.firstName;
-    member.lastName = memberInfo.lastName;
-    member.address = memberInfo.address;
+
+    if (memberInfo) {
+      member.firstName = memberInfo.firstName;
+      member.lastName = memberInfo.lastName;
+      member.address = memberInfo.address;
+    }
   }
 
   alteredGroup.id = alteredGroup._id;
