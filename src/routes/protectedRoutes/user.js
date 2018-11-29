@@ -55,6 +55,13 @@ const getUsersGroupMembersSchema = {
 
 module.exports = [
   new Route(
+    '/users',
+    'GET',
+    null,
+    null,
+    userHandlers.getAllUsersHandler
+  ),
+  new Route(
     '/users/:id',
     'GET',
     null,

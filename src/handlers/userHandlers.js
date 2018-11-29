@@ -2,6 +2,18 @@
 
 const userRepo = require('../repositories/userRepo');
 
+const getAllUsersHandler = async request => {
+  const users = await userRepo.getAll();
+  const response = JSON.parse(JSON.stringify(users));
+  response.forEach(user => {
+    user.id = user._id;
+    delete user._id;
+    delete user.__v;
+  });
+
+  return response;
+};
+
 const getUserHandler = async request => {
   let user = await userRepo.get(request.vparams.id);
 
@@ -46,7 +58,7 @@ const removeUserHandler = async request => {
 
 const getUserGroupHandler = async request => {
   const group = await userRepo.findUsers(request.vparams.id);
-  
+
   const response = {
     members: JSON.parse(JSON.stringify(group))
   };
@@ -60,6 +72,7 @@ const getUserGroupHandler = async request => {
 };
 
 module.exports = {
+  getAllUsersHandler,
   getUserHandler,
   updateUserHandler,
   removeUserHandler,

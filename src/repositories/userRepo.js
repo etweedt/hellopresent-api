@@ -8,6 +8,12 @@ const get = id => {
   });
 };
 
+const getAll = () => {
+  return User.find().catch(error => {
+    throw error;
+  });
+};
+
 const create = user => {
   return User.create(user).catch(error => {
     throw error;
@@ -34,6 +40,7 @@ const findUsers = (id, group) => {
 
 module.exports = {
   get,
+  getAll,
   create,
   update,
   remove,
