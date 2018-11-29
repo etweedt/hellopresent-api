@@ -1,6 +1,7 @@
 'use strict';
 
 const wishlistRepo = require('../repositories/wishlistRepo');
+const userRepo = require('../repositories/userRepo');
 const Exception = require('../types/exception');
 
 const getWishlists = async () => {
@@ -79,9 +80,15 @@ const getUserClaims = async request => {
   };
 
   const lists = JSON.parse(JSON.stringify(claims));
-  lists.forEach(list => {
+
+  for (const list of lists) {
+    const userInfo = await userRepo.get(list.email);
+
     const newClaim = {
       email: list.email,
+      firstName: userInfo.firstName,
+      lastName: userInfo.lastName,
+      address: userInfo.address,
       id: list._id,
       items: []
     };
@@ -95,7 +102,7 @@ const getUserClaims = async request => {
     });
 
     response.claims.push(newClaim);
-  });
+  }
 
   return response;
 };
