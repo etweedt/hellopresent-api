@@ -7,7 +7,7 @@ const getSearchResultsHandler = async request => {
   const allUsers = await userRepo.getAll();
   const matchingResults = [];
 
-  if (request.vparams.searchString.length > 3) {
+  if (request.vparams.searchString.length >= 3) {
     allUsers.forEach(user => {
       const userFullName = `${user.firstName} ${user.lastName}`;
       if (
