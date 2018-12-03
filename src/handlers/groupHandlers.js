@@ -4,11 +4,11 @@ const groupRepo = require('../repositories/groupRepo');
 const userRepo = require('../repositories/userRepo');
 const Exception = require('../types/exception');
 
-const getUserGroupsWithInfo = async groupId => {
-  let group = await groupRepo.getByUserId(groupId);
+const getUserGroupsWithInfo = async userId => {
+  let group = await groupRepo.getByUserId(userId);
   if (!group) {
     group = await groupRepo.create({
-      userId: request.vparams.id,
+      userId: userId,
       members: []
     });
   }
@@ -28,7 +28,7 @@ const getUserGroupsWithInfo = async groupId => {
   alteredGroup.id = alteredGroup._id;
   delete alteredGroup._id;
   delete alteredGroup.__v;
-
+  
   return alteredGroup;
 };
 
