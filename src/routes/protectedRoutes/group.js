@@ -42,6 +42,17 @@ const removeMemberFromUserGroupSchema = {
   }
 };
 
+const getMutualGroupMembersSchema = {
+  'GET /groups/mutual/:id': {
+    properties: {
+      id: {
+        type: 'string'
+      }
+    },
+    required: ['id']
+  }
+};
+
 module.exports = [
   new Route(
     '/groups/:id',
@@ -63,5 +74,12 @@ module.exports = [
     null,
     removeMemberFromUserGroupSchema,
     groupHandlers.removeGroupMember
+  ),
+  new Route(
+    '/groups/mutual/:id',
+    'GET',
+    null,
+    getMutualGroupMembersSchema,
+    groupHandlers.getMutualGroupMembers
   )
 ];

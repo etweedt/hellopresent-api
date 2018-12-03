@@ -95,8 +95,32 @@ const removeGroupMember = async request => {
   return await getUserGroupsWithInfo(request.vparams.id);
 };
 
+const getMutualGroupMembers = async request => {
+  const allGroups = await groupRepo.getAll();
+
+  const response = {
+    userId: request.vparams.id,
+    members: []
+  };
+
+  allGroups.forEach(group => {
+    const found = group.members.find(mem => {
+      return mem.email === request.vparams.id;
+    });
+
+    if (found) {
+      response.members.push({
+        email: group.userId
+      });
+    }
+  });
+
+  return response;
+};
+
 module.exports = {
   getUserGroups,
   addGroupMember,
-  removeGroupMember
+  removeGroupMember,
+  getMutualGroupMembers
 };
