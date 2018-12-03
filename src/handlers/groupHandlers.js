@@ -28,7 +28,7 @@ const getUserGroupsWithInfo = async userId => {
   alteredGroup.id = alteredGroup._id;
   delete alteredGroup._id;
   delete alteredGroup.__v;
-  
+
   return alteredGroup;
 };
 
@@ -103,17 +103,29 @@ const getMutualGroupMembers = async request => {
     members: []
   };
 
-  allGroups.forEach(group => {
+  for (let group of allGroups) {
+    let memberInfo = await userRepo.get(group.userId);
+    if (!memberInfo) {
+      memberInfo = {
+        firstName: '',
+        lastName: '',
+        address: ''
+      };
+    }
+
     const found = group.members.find(mem => {
       return mem.email === request.vparams.id;
     });
 
     if (found) {
       response.members.push({
-        email: group.userId
+        email: group.userId,
+        firstName: memberInfo.firstName,
+        lastName: memberInfo.lastName,
+        address: memberInfo.address
       });
     }
-  });
+  }
 
   return response;
 };
