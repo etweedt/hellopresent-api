@@ -34,9 +34,9 @@ const markNotificationSeen = async request => {
   const updated = await notificationRepo.update(notification._id, notification);
 
   const response = JSON.parse(JSON.stringify(updated));
-  updated.id = updated._id;
-  delete updated._id;
-  delete updated.__v;
+  response.id = updated._id;
+  delete response._id;
+  delete response.__v;
 
   return response;
 };
