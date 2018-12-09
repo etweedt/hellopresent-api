@@ -59,7 +59,7 @@ const addedFriend = async (userId, friendId) => {
 
   // Create notification
   const notification = {
-    message: `${name} added you as a friend!`,
+    message: `${name} added you to their group!`,
     date: new Date(),
     seen: false,
     userId: friendId
