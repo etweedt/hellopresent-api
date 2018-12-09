@@ -3,6 +3,7 @@
 const wishlistRepo = require('../repositories/wishlistRepo');
 const userRepo = require('../repositories/userRepo');
 const Exception = require('../types/exception');
+const notificationHelper = require('../utils/notificationHelper');
 
 const getWishlists = async () => {
   const wishlists = await wishlistRepo.get();
@@ -68,6 +69,8 @@ const updateUserWishlist = async request => {
   response.wishlist.id = wishlist._id;
   delete response._id;
   delete response.__v;
+
+  notificationHelper.updatedWishlist(request.vparams.id);
 
   return response;
 };

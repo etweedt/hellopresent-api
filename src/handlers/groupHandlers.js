@@ -3,6 +3,7 @@
 const groupRepo = require('../repositories/groupRepo');
 const userRepo = require('../repositories/userRepo');
 const Exception = require('../types/exception');
+const notificationHelper = require('../utils/notificationHelper');
 
 const getUserGroupsWithInfo = async userId => {
   let group = await groupRepo.getByUserId(userId);
@@ -67,6 +68,7 @@ const addGroupMember = async request => {
     throw new Exception(409, 'Member is already one of your friends.');
   }
 
+  notificationHelper.addedFriend(request.vparams.id, request.vparams.memberId);
   await groupRepo.update(request.vparams.id, newGroup);
   return await getUserGroupsWithInfo(request.vparams.id);
 };
