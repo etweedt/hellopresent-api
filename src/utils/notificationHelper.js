@@ -30,7 +30,7 @@ const updatedWishlist = async userId => {
     // Create notification
     if (found) {
       const notification = {
-        message: `${name} updated their wishlist!`,
+        message: `${name} made an update to their wishlist!`,
         date: new Date(),
         seen: false,
         userId: group.userId
