@@ -147,6 +147,11 @@ const claimItem = async request => {
       delete response.wishlist._id;
       delete response.wishlist.__v;
 
+      response.wishlist.items.forEach(item => {
+        item.id = item._id;
+        delete item._id;
+      });
+
       return response;
     } else {
       throw new Error('Item not found in wishlist');
@@ -179,6 +184,11 @@ const unclaimItem = async request => {
       response.wishlist.id = updatedWishlist._id;
       delete response.wishlist._id;
       delete response.wishlist.__v;
+
+      response.wishlist.items.forEach(item => {
+        item.id = item._id;
+        delete item._id;
+      });
 
       return response;
     } else {
