@@ -53,6 +53,11 @@ const getUserWishlist = async request => {
   delete response.wishlist._id;
   delete response.wishlist.__v;
 
+  response.wishlist.items.forEach(item => {
+    item.id = item._id;
+    delete item._id;
+  });
+
   return response;
 };
 
@@ -70,7 +75,10 @@ const updateUserWishlist = async request => {
   delete response._id;
   delete response.__v;
 
-  notificationHelper.updatedWishlist(request.vparams.id);
+  notificationHelper.updatedWishlist(
+    request.vparams.id,
+    request.vparams.message ? request.vparams.message : null
+  );
 
   return response;
 };

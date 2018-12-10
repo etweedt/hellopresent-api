@@ -36,6 +36,9 @@ const updateUserWishlistSchema = {
       },
       wishlist: {
         type: 'object'
+      },
+      message: {
+        type: 'string'
       }
     },
     required: ['id', 'wishlist']

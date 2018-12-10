@@ -4,7 +4,7 @@ const notificationRepo = require('../repositories/notificationRepo');
 const userRepo = require('../repositories/userRepo');
 const groupRepo = require('../repositories/groupRepo');
 
-const updatedWishlist = async userId => {
+const updatedWishlist = async (userId, message) => {
   const user = await userRepo.get(userId);
   const groups = await groupRepo.getAll();
 
@@ -21,6 +21,13 @@ const updatedWishlist = async userId => {
     name = userId;
   }
 
+  let text;
+  if (message) {
+    text = `${name} ${message}`;
+  } else {
+    text = `${name} made an update to their wishlist!`;
+  }
+
   // Find members
   for (let group of groups) {
     const found = group.members.find(mem => {
@@ -30,7 +37,7 @@ const updatedWishlist = async userId => {
     // Create notification
     if (found) {
       const notification = {
-        message: `${name} made an update to their wishlist!`,
+        message: text,
         date: new Date(),
         seen: false,
         userId: group.userId
