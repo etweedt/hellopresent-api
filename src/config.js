@@ -1,3 +1,3 @@
 module.exports = {
-  mongoServer: 'http://localhost:27017'
+  mongoServer: '168.61.150.190'
 };
