@@ -12,8 +12,8 @@ const connectToMongo = () => {
         throw err;
       }
 
-      // mongodb://localhost/admin?connectTimeoutMS=30000
       const url = `mongodb://${config.mongoServer}/admin?connectTimeoutMS=30000`;
+      console.log(url);
 
       retry(async () => {
         console.log('connecting...');
