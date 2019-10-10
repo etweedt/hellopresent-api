@@ -12,7 +12,7 @@ const connectToMongo = () => {
         throw err;
       }
 
-      const url = `mongodb://${config.mongoServer}/admin?connectTimeoutMS=30000`;
+      const url = `mongodb://${config.mongoServer}/hellopresent?connectTimeoutMS=30000`;
       console.log(url);
 
       retry(async () => {
