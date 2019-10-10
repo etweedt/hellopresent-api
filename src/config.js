@@ -1,5 +1,5 @@
 module.exports = {
-  mongoServer: 'localhost:27017',
+  mongoServer: 'http://localhost:27017',
   mongoUsername: 'mongoadmin',
   mongoPassword: 'hellopresent'
 };
