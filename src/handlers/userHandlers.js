@@ -2,7 +2,7 @@
 
 const userRepo = require('../repositories/userRepo');
 
-const getAllUsersHandler = async request => {
+const getAllUsersHandler = async () => {
   const users = await userRepo.getAll();
   const response = JSON.parse(JSON.stringify(users));
   response.forEach(user => {

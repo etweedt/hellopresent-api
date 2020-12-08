@@ -1,38 +1,29 @@
 'use strict';
 
-const User = require('../models/user');
+const cosmos = require('../utils/cosmosHelper');
+const containerId = 'USERS';
 
-const get = id => {
-  return User.findById(id).catch(error => {
-    throw error;
-  });
+const get = async id => {
+  return await cosmos.queryContainerById(containerId, id);
 };
 
-const getAll = () => {
-  return User.find().catch(error => {
-    throw error;
-  });
+const getAll = async () => {
+  return await cosmos.queryContainer();
 };
 
-const create = user => {
-  return User.create(user).catch(error => {
-    throw error;
-  });
+const create = async user => {
+  return await cosmos.createContainerItem();
 };
 
-const update = (id, user) => {
-  return User.findByIdAndUpdate(id, user, {new: true}).catch(error => {
-    throw error;
-  });
+const update = async (id, user) => {
+  return await cosmos.updateContainerItem();
 };
 
-const remove = id => {
-  return User.findByIdAndRemove(id).catch(error => {
-    throw error;
-  });
+const remove = async id => {
+  return await cosmos.deleteContainerItem();
 };
 
-const findUsers = (id, group) => {
+const findUsers = async (id, group) => {
   return User.find({_id: {$ne: id}, firstName: {$ne: null}}).catch(error => {
     throw error;
   });
