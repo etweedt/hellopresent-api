@@ -1,37 +1,65 @@
 'use strict';
 
-const Notification = require('../models/notification');
+const cosmos = require('../utils/cosmosHelper');
+const containerId = 'NOTIFICATIONS';
 
-const create = notification => {
-  return Notification.create(notification).catch(error => {
-    throw error;
-  });
+const create = async notification => {
+  const item = cosmos.createContainerItem(containerId, notification);
+
+  return item;
 };
 
-const getById = notificationId => {
-  return Notification.findById(notificationId).catch(error => {
-    throw error;
-  });
+const getById = async notificationId => {
+  return await cosmos.getById(containerId, notificationId);
 };
 
-const getUnseen = userId => {
-  return Notification.find({userId, seen: false}).catch(error => {
-    throw error;
-  });
+const getUnseen = async userId => {
+  const querySpec = {
+    query: 'SELECT * from c WHERE c.seen = @seen AND c.userId = @userId',
+    parameters: [
+      {
+        name: '@seen',
+        value: false
+      },
+      {
+        name: '@userId',
+        value: userId
+      }
+    ]
+  };
+  return await cosmos.queryContainer(containerId, querySpec);
 };
 
-const getAll = userId => {
-  return Notification.find({userId}).catch(error => {
-    throw error;
-  });
+const getAll = async userId => {
+  const querySpec = {
+    query: 'SELECT * from c WHERE c.userId = @userId',
+    parameters: [
+      {
+        name: '@userId',
+        value: userId
+      }
+    ]
+  };
+  return await cosmos.queryContainer(containerId, querySpec);
 };
 
-const update = (id, notification) => {
-  return Notification.findByIdAndUpdate(id, notification, {new: true}).catch(
-    error => {
-      throw error;
-    }
+const markSeen = async notificationId => {
+  const notification = await cosmos.getById(containerId, notificationId);
+  notification.seen = true;
+
+  const item = await cosmos.updateContainerItem(
+    containerId,
+    notification
   );
+
+  return item;
+};
+
+const deleteNotification = async notificationId => {
+  const notification = await cosmos.getById(containerId, notificationId);
+  const deleted = await cosmos.deleteContainerItem(containerId, notification);
+
+  return deleted;
 };
 
 module.exports = {
@@ -39,5 +67,6 @@ module.exports = {
   getById,
   getUnseen,
   getAll,
-  update
+  markSeen,
+  deleteNotification
 };

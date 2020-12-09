@@ -4,52 +4,52 @@ const Route = require('../../types/route');
 const userHandlers = require('../../handlers/userHandlers');
 
 const getUserSchema = {
-  'GET /users/:id': {
+  'GET /users/:email': {
     properties: {
-      id: {
+      email: {
         type: 'string'
       }
     },
-    required: ['id']
+    required: ['email']
   }
 };
 
 const updateUserSchema = {
-  'POST /users/:id': {
+  'POST /users/:email': {
     properties: {
-      id: {
+      email: {
         type: 'string'
       },
       user: {
         type: 'object'
       }
     },
-    required: ['id', 'user']
+    required: ['email', 'user']
   }
 };
 
 const removeUserSchema = {
-  'DELETE /users/:id': {
+  'DELETE /users/:email': {
     properties: {
-      id: {
+      email: {
         type: 'string'
       }
     },
-    required: ['id']
+    required: ['email']
   }
 };
 
 const getUsersGroupMembersSchema = {
-  'GET /users/group/:id': {
+  'GET /users/group/:email': {
     properties: {
-      id: {
+      email: {
         type: 'string'
       },
       group: {
         type: 'string'
       }
     },
-    required: ['id']
+    required: ['email']
   }
 };
 
@@ -62,28 +62,28 @@ module.exports = [
     userHandlers.getAllUsersHandler
   ),
   new Route(
-    '/users/:id',
+    '/users/:email',
     'GET',
     null,
     getUserSchema,
     userHandlers.getUserHandler
   ),
   new Route(
-    '/users/:id',
+    '/users/:email',
     'POST',
     null,
     updateUserSchema,
     userHandlers.updateUserHandler
   ),
   new Route(
-    '/users/:id',
+    '/users/:email',
     'DELETE',
     null,
     removeUserSchema,
     userHandlers.removeUserHandler
   ),
   new Route(
-    '/users/group/:id',
+    '/users/group/:email',
     'GET',
     null,
     getUsersGroupMembersSchema,

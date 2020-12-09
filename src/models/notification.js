@@ -1,26 +1,36 @@
 'use strict';
 
-const mongoose = require('mongoose');
-
-const NotificationSchema = new mongoose.Schema({
-  userId: {
-    type: String,
-    required: true
-  },
-  date: {
-    type: Date,
-    required: true
-  },
-  message: {
-    type: String,
-    required: true
-  },
-  seen: {
-    type: Boolean,
-    required: true
+class Notification {
+  constructor(userId, message) {
+    this.userId = userId;
+    this.message = message ? message : '';
+    this.seen = false;
+    this.date = new Date();
   }
-});
 
-const Notification = mongoose.model('Notification', NotificationSchema);
+  get UserId() {
+    return this.userId;
+  }
+
+  get Message() {
+    return this.message;
+  }
+
+  set Message(value) {
+    this.message = value;
+  }
+
+  get Seen() {
+    return this.seen;
+  }
+
+  set Seen(value) {
+    this.seen = value;
+  }
+
+  get Date() {
+    return this.date;
+  }
+}
 
 module.exports = Notification;

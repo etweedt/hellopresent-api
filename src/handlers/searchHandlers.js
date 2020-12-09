@@ -2,6 +2,7 @@
 
 const userRepo = require('../repositories/userRepo');
 const Exception = require('../types/exception');
+const {stripMetadata} = require('../utils/cosmosHelper');
 
 const getSearchResultsHandler = async request => {
   const allUsers = await userRepo.getAll();
@@ -17,11 +18,11 @@ const getSearchResultsHandler = async request => {
       ) {
         matchingResults.push(JSON.parse(JSON.stringify(user)));
       } else if (
-        user._id
+        user.email
           .toLowerCase()
           .includes(request.vparams.searchString.toLowerCase())
       ) {
-        matchingResults.push(JSON.parse(JSON.stringify(user)));
+        matchingResults.push(user);
       }
     });
   } else {
@@ -33,18 +34,16 @@ const getSearchResultsHandler = async request => {
 
   if (request.vparams.userId) {
     const found = matchingResults.find(result => {
-      return result._id === request.vparams.userId;
+      return result.email === request.vparams.userId;
     });
     if (found) {
       matchingResults.splice(matchingResults.indexOf(found), 1);
     }
   }
 
-  matchingResults.forEach(result => {
-    result.email = result._id;
-    delete result._id;
-    delete result.__v;
-  });
+  for (let r of matchingResults) {
+    stripMetadata(r);
+  }
 
   return {
     searchResults: matchingResults

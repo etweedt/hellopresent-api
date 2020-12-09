@@ -1,40 +1,22 @@
 'use strict';
 
-const mongoose = require('mongoose');
-const uuid = require('uuid/v4');
+class Wishlist {
+  constructor(email, items) {
+    this.email = email;
+    this.items = items ? items : []
+  }
 
-const WishlistSchema = new mongoose.Schema({
-  _id: {
-    type: String,
-    default: () => uuid()
-  },
-  email: {
-    type: String,
-    trim: true,
-    unique: true,
-    required: true
-  },
-  items: [
-    {
-      name: {
-        type: String,
-        required: true
-      },
-      description: String,
-      url: {
-        type: String,
-        trim: true
-      },
-      notes: String,
-      priceTier: Number,
-      claimedBy: {
-        type: String,
-        trim: true
-      }
-    }
-  ]
-});
+  get Email() {
+    return this.email;
+  }
 
-const Wishlist = mongoose.model('Wishlist', WishlistSchema);
+  get Items() {
+    return this.items;
+  }
+
+  set Items(value) {
+    this.items = value;
+  }
+}
 
 module.exports = Wishlist;

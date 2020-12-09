@@ -4,34 +4,34 @@ const Route = require('../../types/route');
 const wishlistHandlers = require('../../handlers/wishlistHandlers');
 
 const getUserWishlistSchema = {
-  'GET /wishlists/user/:id': {
+  'GET /wishlists/user/:email': {
     properties: {
-      id: {
+      email: {
         type: 'string'
       }
     },
-    required: ['id']
+    required: ['email']
   }
 };
 
 const getWishlistsVisibleByUserSchema = {
-  'GET /wishlists/:id': {
+  'GET /wishlists/:email': {
     properties: {
-      id: {
+      email: {
         type: 'string'
       },
       group: {
         type: 'string'
       }
     },
-    required: ['id']
+    required: ['email']
   }
 };
 
 const updateUserWishlistSchema = {
-  'POST /wishlists/user/:id': {
+  'POST /wishlists/user/:email': {
     properties: {
-      id: {
+      email: {
         type: 'string'
       },
       wishlist: {
@@ -41,18 +41,18 @@ const updateUserWishlistSchema = {
         type: 'string'
       }
     },
-    required: ['id', 'wishlist']
+    required: ['email', 'wishlist']
   }
 };
 
 const getUserClaimsFromWishlistSchema = {
-  'GET /wishlists/claims/:id': {
+  'GET /wishlists/claims/:email': {
     properties: {
-      id: {
+      email: {
         type: 'string'
       }
     },
-    required: ['id']
+    required: ['email']
   }
 };
 
@@ -65,11 +65,11 @@ const claimItemSchema = {
       wishlistId: {
         type: 'string'
       },
-      itemId: {
-        type: 'string'
+      item: {
+        type: 'object'
       }
     },
-    required: ['userId', 'wishlistId', 'itemId']
+    required: ['userId', 'wishlistId', 'item']
   }
 };
 
@@ -82,39 +82,39 @@ const unclaimItemSchema = {
       wishlistId: {
         type: 'string'
       },
-      itemId: {
-        type: 'string'
+      item: {
+        type: 'object'
       }
     },
-    required: ['userId', 'wishlistId', 'itemId']
+    required: ['userId', 'wishlistId', 'item']
   }
 };
 
 module.exports = [
   new Route('/wishlists', 'GET', null, null, wishlistHandlers.getWishlists),
   new Route(
-    '/wishlists/user/:id',
+    '/wishlists/user/:email',
     'GET',
     null,
     getUserWishlistSchema,
     wishlistHandlers.getUserWishlist
   ),
   new Route(
-    '/wishlists/:id',
+    '/wishlists/:email',
     'GET',
     null,
     getWishlistsVisibleByUserSchema,
     wishlistHandlers.getWishlistsVisibleByUser
   ),
   new Route(
-    '/wishlists/user/:id',
+    '/wishlists/user/:email',
     'POST',
     null,
     updateUserWishlistSchema,
     wishlistHandlers.updateUserWishlist
   ),
   new Route(
-    '/wishlists/claims/:id',
+    '/wishlists/claims/:email',
     'GET',
     null,
     getUserClaimsFromWishlistSchema,

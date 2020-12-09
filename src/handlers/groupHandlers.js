@@ -2,44 +2,54 @@
 
 const groupRepo = require('../repositories/groupRepo');
 const userRepo = require('../repositories/userRepo');
+const wishlistRepo = require('../repositories/wishlistRepo');
+const Group = require('../models/group');
 const Exception = require('../types/exception');
 const notificationHelper = require('../utils/notificationHelper');
+const {stripMetadata} = require('../utils/cosmosHelper');
 
-const getUserGroupsWithInfo = async userId => {
-  let group = await groupRepo.getByUserId(userId);
+const getUserGroupsWithInfo = async email => {
+  let group = await groupRepo.getByUserId(email);
+
+  // Always create group if it does not exist.
   if (!group) {
-    group = await groupRepo.create({
-      userId: userId,
-      members: []
-    });
+    group = await groupRepo.create(new Group(email));
   }
 
-  const alteredGroup = JSON.parse(JSON.stringify(group));
-
-  for (let member of alteredGroup.members) {
+  for (let member of group.members) {
     const memberInfo = await userRepo.get(member.email);
 
     if (memberInfo) {
+      member.email = memberInfo.email;
       member.firstName = memberInfo.firstName;
       member.lastName = memberInfo.lastName;
       member.address = memberInfo.address;
     }
   }
 
-  alteredGroup.id = alteredGroup._id;
-  delete alteredGroup._id;
-  delete alteredGroup.__v;
+  stripMetadata(group, true);
 
-  return alteredGroup;
+  return group;
+};
+
+const getAllGroups = async () => {
+  const groups = await groupRepo.getAll();
+  for (let g of groups) {
+    stripMetadata(g, true);
+  }
+
+  return groups;
 };
 
 const getUserGroups = async request => {
-  const response = await getUserGroupsWithInfo(request.vparams.id);
-
-  return response;
+  return await getUserGroupsWithInfo(request.vparams.email);
 };
 
 const addGroupMember = async request => {
+  if (request.vparams.memberId === request.vparams.email) {
+    throw new Exception(409, 'Cannot add yourself.');
+  }
+  
   let userToAdd = await userRepo.get(request.vparams.memberId);
   if (!userToAdd) {
     throw new Exception(
@@ -48,67 +58,84 @@ const addGroupMember = async request => {
     );
   }
 
-  let group = await groupRepo.getByUserId(request.vparams.id);
+  let group = await groupRepo.getByUserId(request.vparams.email);
+  
+  // Always create group if it does not exist.
   if (!group) {
-    group = await groupRepo.create({
-      userId: request.vparams.id,
-      members: []
-    });
+    group = await groupRepo.create(new Group(request.vparams.email));
   }
 
-  const newGroup = JSON.parse(JSON.stringify(group));
-  const found = newGroup.members.find(mem => {
+  const found = group.members.find(mem => {
     return mem.email === request.vparams.memberId;
   });
   if (!found) {
-    newGroup.members.push({
+    group.members.push({
       email: request.vparams.memberId
     });
   } else {
     throw new Exception(409, 'Member is already one of your friends.');
   }
 
-  notificationHelper.addedFriend(request.vparams.id, request.vparams.memberId);
-  await groupRepo.update(request.vparams.id, newGroup);
-  return await getUserGroupsWithInfo(request.vparams.id);
+  notificationHelper.addedFriend(
+    request.vparams.email,
+    request.vparams.memberId
+  );
+  await groupRepo.update(group);
+  return await getUserGroupsWithInfo(request.vparams.email);
 };
 
 const removeGroupMember = async request => {
-  let group = await groupRepo.getByUserId(request.vparams.id);
+  let group = await groupRepo.getByUserId(request.vparams.email);
 
+  // Always create group if it does not exist.
   if (!group) {
     group = await groupRepo.create({
-      userId: request.vparams.id,
+      userId: request.vparams.email,
       members: []
     });
   }
 
-  const newGroup = JSON.parse(JSON.stringify(group));
-  const found = newGroup.members.find(mem => {
+  const found = group.members.find(mem => {
     return mem.email === request.vparams.memberId;
   });
   if (!found) {
     throw new Exception(409, 'Member was not already one of your friends.');
   } else {
-    newGroup.members.splice(newGroup.members.indexOf(found), 1);
+    group.members.splice(group.members.indexOf(found), 1);
+
+    // Clean up any item claims from the removed member
+    const removedMemberWishlist = await wishlistRepo.getForUser(request.vparams.memberId);
+    let dirty = false;
+    for (let item of removedMemberWishlist.items) {
+      if (item.claimedBy === request.vparams.email) {
+        delete item.claimedBy;
+        dirty = true;
+      }
+    }
+
+    if (dirty) {
+      await wishlistRepo.update(removedMemberWishlist);
+    }
   }
 
-  await groupRepo.update(request.vparams.id, newGroup);
-  return await getUserGroupsWithInfo(request.vparams.id);
+  await groupRepo.update(group);
+  return await getUserGroupsWithInfo(request.vparams.email);
 };
 
 const getMutualGroupMembers = async request => {
   const allGroups = await groupRepo.getAll();
-
+  
   const response = {
-    userId: request.vparams.id,
+    userId: request.vparams.email,
     members: []
   };
 
   for (let group of allGroups) {
     let memberInfo = await userRepo.get(group.userId);
+    
     if (!memberInfo) {
       memberInfo = {
+        email: group.userId,
         firstName: '',
         lastName: '',
         address: ''
@@ -116,7 +143,7 @@ const getMutualGroupMembers = async request => {
     }
 
     const found = group.members.find(mem => {
-      return mem.email === request.vparams.id;
+      return mem.email === request.vparams.email;
     });
 
     if (found) {
@@ -133,6 +160,7 @@ const getMutualGroupMembers = async request => {
 };
 
 module.exports = {
+  getAllGroups,
   getUserGroups,
   addGroupMember,
   removeGroupMember,

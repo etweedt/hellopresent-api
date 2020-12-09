@@ -1,39 +1,46 @@
 'use strict';
 
-const Group = require('../models/group');
+const cosmos = require('../utils/cosmosHelper');
+const containerId = 'GROUPS';
 
-const create = group => {
-  return Group.create(group).catch(error => {
-    throw error;
-  });
+const create = async group => {
+  return await cosmos.createContainerItem(containerId, group);
 };
 
-const getByUserId = userId => {
-  return Group.findOne({userId}).catch(error => {
-    throw error;
-  });
+const getAll = async () => {
+  const querySpec = {
+    query: 'SELECT * from c'
+  };
+
+  return await cosmos.queryContainer(containerId, querySpec);
 };
 
-const getAll = () => {
-  return Group.find().catch(error => {
-    throw error;
-  });
+const getByUserId = async userId => {
+  const querySpec = {
+    query: 'SELECT * from c WHERE c.userId = @userId',
+    parameters: [
+      {
+        name: '@userId',
+        value: userId
+      }
+    ]
+  };
+
+  return (await cosmos.queryContainer(containerId, querySpec))[0];
 };
 
-const update = (userId, group) => {
-  return Group.findOneAndUpdate({userId}, group, {new: true}).catch(error => {
-    throw error;
-  });
+const update = async group => {
+  return await cosmos.updateContainerItem(containerId, group);
 };
 
-const remove = userId => {
-  return Group.findOneAndRemove({userId}).catch(error => {
-    throw error;
-  });
+const remove = async userId => {
+  const group = await getByUserId(userId);
+  return await cosmos.deleteContainerItem(containerId, group);
 };
 
 module.exports = {
   create,
+  getAll,
   getByUserId,
   getAll,
   update,

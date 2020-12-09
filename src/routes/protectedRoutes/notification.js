@@ -42,6 +42,17 @@ const createNotificationSchema = {
   }
 };
 
+const deleteNotificationSchema = {
+  'DELETE /notifications/:notificationId': {
+    properties: {
+      notificationId: {
+        type: 'string'
+      }
+    },
+    required: ['notificationId']
+  }
+};
+
 module.exports = [
   new Route(
     '/notifications/:userId',
@@ -63,5 +74,12 @@ module.exports = [
     null,
     createNotificationSchema,
     notificationHandlers.createNotification
+  ),
+  new Route(
+    '/notifications/:notificationId',
+    'DELETE',
+    null,
+    deleteNotificationSchema,
+    notificationHandlers.deleteNotification
   )
 ];

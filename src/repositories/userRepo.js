@@ -1,41 +1,65 @@
 'use strict';
 
-const User = require('../models/user');
+const cosmos = require('../utils/cosmosHelper');
+const containerId = 'USERS';
 
-const get = id => {
-  return User.findById(id).catch(error => {
-    throw error;
-  });
+const get = async email => {
+  const querySpec = {
+    query: 'SELECT * from c WHERE c.email = @email',
+    parameters: [
+      {
+        name: '@email',
+        value: email
+      }
+    ]
+  };
+
+  return (await cosmos.queryContainer(containerId, querySpec))[0];
 };
 
-const getAll = () => {
-  return User.find().catch(error => {
-    throw error;
-  });
+const getAll = async () => {
+  const querySpec = {
+    query: 'SELECT * from c'
+  };
+  return await cosmos.queryContainer(containerId, querySpec);
 };
 
-const create = user => {
-  return User.create(user).catch(error => {
-    throw error;
-  });
+const create = async user => {
+  const {resource: createdItem} = await cosmos.createContainerItem(
+    containerId,
+    user
+  );
+  return createdItem;
 };
 
-const update = (id, user) => {
-  return User.findByIdAndUpdate(id, user, {new: true}).catch(error => {
-    throw error;
-  });
+const update = async (email, updatedUser) => {
+  const user = await get(email);
+
+  if (user) {
+    user.firstName = updatedUser.firstName;
+    user.lastName = updatedUser.lastName;
+    user.address = updatedUser.address;
+
+    const item = await cosmos.updateContainerItem(
+      containerId,
+      user
+    );
+
+    return item;
+  } else {
+    throw new Error('User not found');
+  }
 };
 
-const remove = id => {
-  return User.findByIdAndRemove(id).catch(error => {
-    throw error;
-  });
-};
-
-const findUsers = (id, group) => {
-  return User.find({_id: {$ne: id}, firstName: {$ne: null}}).catch(error => {
-    throw error;
-  });
+const remove = async email => {
+  const user = await get(email);
+  
+  if (user) {
+    const item = await cosmos.deleteContainerItem(containerId, user);
+    return item;
+  } else {
+    throw new Error('User not found');
+  }
 };
 
 module.exports = {
@@ -43,6 +67,5 @@ module.exports = {
   getAll,
   create,
   update,
-  remove,
-  findUsers
+  remove
 };
