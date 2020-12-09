@@ -1,10 +1,10 @@
 'use strict';
 
 const wishlistRepo = require('../repositories/wishlistRepo');
+const groupRepo = require('../repositories/groupRepo');
 const userRepo = require('../repositories/userRepo');
 const {stripMetadata} = require('../utils/cosmosHelper');
 const Wishlist = require('../models/wishlist');
-const WishlistItem = require('../models/wishlistItem');
 const Exception = require('../types/exception');
 const notificationHelper = require('../utils/notificationHelper');
 
@@ -23,7 +23,7 @@ const getWishlistsVisibleByUser = async request => {
 };
 
 const getUserWishlist = async request => {
-  let wishlist = (await wishlistRepo.getForUser(request.vparams.email))[0];
+  let wishlist = await wishlistRepo.getForUser(request.vparams.email);
 
   if (!wishlist) {
     wishlist = await wishlistRepo.create(new Wishlist(request.vparams.email));
@@ -35,7 +35,7 @@ const getUserWishlist = async request => {
 };
 
 const updateUserWishlist = async request => {
-  const wishlist = (await wishlistRepo.getForUser(request.vparams.email))[0];
+  const wishlist = await wishlistRepo.getForUser(request.vparams.email);
   wishlist.items = request.vparams.wishlist.items;
 
   const updated = await wishlistRepo.update(wishlist);
@@ -51,18 +51,39 @@ const updateUserWishlist = async request => {
 };
 
 const getUserClaims = async request => {
-  const claims = await wishlistRepo.getClaims(request.vparams.email);
-  stripMetadata(claims, false);
+  const claims = [];
+  const group = await groupRepo.getByUserId(request.vparams.email);
+
+  for (let member of group.members) {
+    const wishlist = await wishlistRepo.getForUser(member.email);
+    const claimedItems = [];
+
+    for (let item of wishlist.items) {
+      if (item.claimedBy === request.vparams.email) {
+        claimedItems.push(item);
+      }
+    }
+
+    if (claimedItems.length > 0) {
+      const user = await userRepo.get(member.email);
+      claims.push({
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        address: user.address,
+        items: claimedItems
+      });
+    }
+  }
 
   return {claims};
 };
 
 const claimItem = async request => {
-  const wishlist = await wishlistRepo.getById(request.vparams.wishlistId);
+  const wishlist = await wishlistRepo.getForUser(request.vparams.wishlistId);
   if (wishlist) {
-    const newList = JSON.parse(JSON.stringify(wishlist));
-    const found = newList.items.find(item => {
-      return item._id === request.vparams.itemId;
+    const found = wishlist.items.find(item => {
+      return item.name === request.vparams.item.name;
     });
 
     if (found) {
@@ -71,22 +92,10 @@ const claimItem = async request => {
       }
       found.claimedBy = request.vparams.userId;
 
-      const updatedWishlist = await wishlistRepo.update(newList.email, newList);
+      const updatedWishlist = await wishlistRepo.update(wishlist);
+      stripMetadata(updatedWishlist, false);
 
-      const response = {
-        wishlist: JSON.parse(JSON.stringify(updatedWishlist))
-      };
-
-      response.wishlist.id = updatedWishlist._id;
-      delete response.wishlist._id;
-      delete response.wishlist.__v;
-
-      response.wishlist.items.forEach(item => {
-        item.id = item._id;
-        delete item._id;
-      });
-
-      return response;
+      return {wishlist: updatedWishlist};
     } else {
       throw new Error('Item not found in wishlist');
     }
@@ -96,11 +105,10 @@ const claimItem = async request => {
 };
 
 const unclaimItem = async request => {
-  const wishlist = await wishlistRepo.getById(request.vparams.wishlistId);
+  const wishlist = await wishlistRepo.getForUser(request.vparams.wishlistId);
   if (wishlist) {
-    const newList = JSON.parse(JSON.stringify(wishlist));
-    const found = newList.items.find(item => {
-      return item._id === request.vparams.itemId;
+    const found = wishlist.items.find(item => {
+      return item.name === request.vparams.item.name;
     });
 
     if (found) {
@@ -109,22 +117,10 @@ const unclaimItem = async request => {
       }
       delete found.claimedBy;
 
-      const updatedWishlist = await wishlistRepo.update(newList.email, newList);
+      const updatedWishlist = await wishlistRepo.update(wishlist);
+      stripMetadata(updatedWishlist, false);
 
-      const response = {
-        wishlist: JSON.parse(JSON.stringify(updatedWishlist))
-      };
-
-      response.wishlist.id = updatedWishlist._id;
-      delete response.wishlist._id;
-      delete response.wishlist.__v;
-
-      response.wishlist.items.forEach(item => {
-        item.id = item._id;
-        delete item._id;
-      });
-
-      return response;
+      return {wishlist: updatedWishlist};
     } else {
       throw new Error('Item not found in wishlist');
     }

@@ -48,7 +48,7 @@ const updateUserWishlistSchema = {
 const getUserClaimsFromWishlistSchema = {
   'GET /wishlists/claims/:email': {
     properties: {
-      id: {
+      email: {
         type: 'string'
       }
     },
@@ -65,11 +65,11 @@ const claimItemSchema = {
       wishlistId: {
         type: 'string'
       },
-      itemId: {
-        type: 'string'
+      item: {
+        type: 'object'
       }
     },
-    required: ['userId', 'wishlistId', 'itemId']
+    required: ['userId', 'wishlistId', 'item']
   }
 };
 
@@ -82,11 +82,11 @@ const unclaimItemSchema = {
       wishlistId: {
         type: 'string'
       },
-      itemId: {
-        type: 'string'
+      item: {
+        type: 'object'
       }
     },
-    required: ['userId', 'wishlistId', 'itemId']
+    required: ['userId', 'wishlistId', 'item']
   }
 };
 

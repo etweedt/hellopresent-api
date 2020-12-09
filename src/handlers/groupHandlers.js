@@ -2,6 +2,7 @@
 
 const groupRepo = require('../repositories/groupRepo');
 const userRepo = require('../repositories/userRepo');
+const wishlistRepo = require('../repositories/wishlistRepo');
 const Group = require('../models/group');
 const Exception = require('../types/exception');
 const notificationHelper = require('../utils/notificationHelper');
@@ -101,6 +102,20 @@ const removeGroupMember = async request => {
     throw new Exception(409, 'Member was not already one of your friends.');
   } else {
     group.members.splice(group.members.indexOf(found), 1);
+
+    // Clean up any item claims from the removed member
+    const removedMemberWishlist = await wishlistRepo.getForUser(request.vparams.memberId);
+    let dirty = false;
+    for (let item of removedMemberWishlist.items) {
+      if (item.claimedBy === request.vparams.email) {
+        delete item.claimedBy;
+        dirty = true;
+      }
+    }
+
+    if (dirty) {
+      await wishlistRepo.update(removedMemberWishlist);
+    }
   }
 
   await groupRepo.update(group);
