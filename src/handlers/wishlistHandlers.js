@@ -54,6 +54,11 @@ const getUserClaims = async request => {
   const claims = [];
   const group = await groupRepo.getByUserId(request.vparams.email);
 
+  // Always create group if it does not exist.
+  if (!group) {
+    group = await groupRepo.create(new Group(request.vparams.email));
+  }
+
   for (let member of group.members) {
     const wishlist = await wishlistRepo.getForUser(member.email);
     const claimedItems = [];
