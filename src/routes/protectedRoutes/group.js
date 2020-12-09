@@ -73,7 +73,7 @@ module.exports = [
     'GET',
     null,
     getUserGroupMembersSchema,
-    groupHandlers.getUserGroups
+    groupHandlers.getUserGroup
   ),
   new Route(
     '/groups/:email',

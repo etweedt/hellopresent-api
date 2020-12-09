@@ -7,8 +7,9 @@ const Group = require('../models/group');
 const Exception = require('../types/exception');
 const notificationHelper = require('../utils/notificationHelper');
 const {stripMetadata} = require('../utils/cosmosHelper');
+const cosmosHelper = require('../utils/cosmosHelper');
 
-const getUserGroupsWithInfo = async email => {
+const getUserGroupWithInfo = async email => {
   let group = await groupRepo.getByUserId(email);
 
   // Always create group if it does not exist.
@@ -41,8 +42,8 @@ const getAllGroups = async () => {
   return groups;
 };
 
-const getUserGroups = async request => {
-  return await getUserGroupsWithInfo(request.vparams.email);
+const getUserGroup = async request => {
+  return await getUserGroupWithInfo(request.vparams.email);
 };
 
 const addGroupMember = async request => {
@@ -81,7 +82,7 @@ const addGroupMember = async request => {
     request.vparams.memberId
   );
   await groupRepo.update(group);
-  return await getUserGroupsWithInfo(request.vparams.email);
+  return await getUserGroupWithInfo(request.vparams.email);
 };
 
 const removeGroupMember = async request => {
@@ -119,7 +120,7 @@ const removeGroupMember = async request => {
   }
 
   await groupRepo.update(group);
-  return await getUserGroupsWithInfo(request.vparams.email);
+  return await getUserGroupWithInfo(request.vparams.email);
 };
 
 const getMutualGroupMembers = async request => {
@@ -159,10 +160,17 @@ const getMutualGroupMembers = async request => {
   return response;
 };
 
+const remove = async email => {
+  const group = getUserGroup(email);
+  await cosmosHelper.deleteContainerItem(containerId, group);
+  return group;
+};
+
 module.exports = {
   getAllGroups,
-  getUserGroups,
+  getUserGroup,
   addGroupMember,
   removeGroupMember,
-  getMutualGroupMembers
+  getMutualGroupMembers,
+  remove
 };

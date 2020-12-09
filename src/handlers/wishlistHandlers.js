@@ -4,6 +4,7 @@ const wishlistRepo = require('../repositories/wishlistRepo');
 const groupRepo = require('../repositories/groupRepo');
 const userRepo = require('../repositories/userRepo');
 const {stripMetadata} = require('../utils/cosmosHelper');
+const Group = require('../models/group');
 const Wishlist = require('../models/wishlist');
 const Exception = require('../types/exception');
 const notificationHelper = require('../utils/notificationHelper');

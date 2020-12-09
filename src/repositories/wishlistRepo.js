@@ -33,9 +33,17 @@ const update = async wishlist => {
   return await cosmos.updateContainerItem(containerId, wishlist);
 };
 
+const remove = async email => {
+  const list = await getForUser(email);
+  await cosmos.deleteContainerItem(containerId, list);
+
+  return list;
+};
+
 module.exports = {
   get,
   getForUser,
   create,
-  update
+  update,
+  remove
 };
