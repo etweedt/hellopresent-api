@@ -52,7 +52,7 @@ const updateUserWishlist = async request => {
 
 const getUserClaims = async request => {
   const claims = [];
-  const group = await groupRepo.getByUserId(request.vparams.email);
+  let group = await groupRepo.getByUserId(request.vparams.email);
 
   // Always create group if it does not exist.
   if (!group) {
