@@ -1,25 +1,22 @@
 'use strict';
 
-const mongoose = require('mongoose');
+class Group {
+  constructor(userId, members) {
+    this.userId = userId;
+    this.members = members ? members : [];
+  }
 
-const GroupSchema = new mongoose.Schema({
-  userId: {
-    type: String,
-    required: true,
-    trim: true,
-    unique: true
-  },
-  members: [
-    {
-      email: {
-        type: String,
-        trim: true,
-        require: true
-      }
-    }
-  ]
-});
+  get UserId() {
+    return this.userId;
+  }
 
-const Group = mongoose.model('Group', GroupSchema);
+  get Members() {
+    return this.members;
+  }
+
+  set Members(value) {
+    this.members = value;
+  }
+}
 
 module.exports = Group;

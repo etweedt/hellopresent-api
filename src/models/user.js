@@ -1,23 +1,40 @@
 'use strict';
 
-const mongoose = require('mongoose');
+class User {
+  constructor(email, firstName, lastName, address) {
+    this.email = email;
+    this.firstName = firstName ? firstName : '';
+    this.lastName = lastName ? lastName : '';
+    this.address = address ? address : '';
+  }
 
-const UserSchema = new mongoose.Schema({
-  _id: {
-    type: String,
-    trim: true
-  },
-  firstName: {
-    type: String,
-    trim: true
-  },
-  lastName: {
-    type: String,
-    trim: true
-  },
-  address: String
-});
+  get Email() {
+    return this.email;
+  }
 
-const User = mongoose.model('User', UserSchema);
+  get FirstName() {
+    return this.firstName;
+  }
+
+  set FirstName(value) {
+    this.firstName = value;
+  }
+
+  get LastName() {
+    return this.lastName;
+  }
+
+  set LastName(value) {
+    this.lastName = value;
+  }
+
+  get Address() {
+    return this.address;
+  }
+
+  set Address(value) {
+    this.address = value;
+  }
+}
 
 module.exports = User;

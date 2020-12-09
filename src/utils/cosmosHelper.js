@@ -50,31 +50,8 @@ async function readContainer(containerId) {
     .database(databaseId)
     .container(containerId)
     .read();
-  console.log(`Reading container:\n${containerDefinition.id}\n`);
-}
 
-/**
- * Scale a container
- * You can scale the throughput (RU/s) of your container up and down to meet the needs of the workload. Learn more: https://aka.ms/cosmos-request-units
- */
-async function scaleContainer(containerId) {
-  const {resource: containerDefinition} = await client
-    .database(databaseId)
-    .container(containerId)
-    .read();
-  const {resources: offers} = await client.offers.readAll().fetchAll();
-
-  const newRups = 400;
-  for (var offer of offers) {
-    if (containerDefinition._rid !== offer.offerResourceId) {
-      continue;
-    }
-    offer.content.offerThroughput = newRups;
-    const offerToReplace = client.offer(offer.id);
-    await offerToReplace.replace(offer);
-    console.log(`Updated offer to ${newRups} RU/s`);
-    break;
-  }
+  console.log(`Reading container: ${containerDefinition.id}`);
 }
 
 /**
@@ -93,9 +70,10 @@ async function setup() {
     await createDatabase();
     await readDatabase();
 
+    // I think this only needs to be done once
     for (let container of containers) {
       await createContainer(container.id, container.path);
-      await scaleContainer(container.id);
+      await readContainer(container.id);
     }
   } catch (err) {
     exit(`Completed with error ${err.message}`);
@@ -106,21 +84,21 @@ async function setup() {
  * Create item if it does not exist
  */
 async function createContainerItem(containerId, itemBody) {
-  const {item} = await client
+  const {resource: createdItem} = await client
     .database(databaseId)
     .container(containerId)
     .items.upsert(itemBody);
 
-  console.log(`Created item with id: ${item.id}`);
+  console.log(`Created item with id: ${createdItem.id}`);
 
-  return item;
+  return createdItem;
 }
 
 /**
  * Replaces an item by id
  */
-async function updateContainerItem(containerId, id, itemBody) {
-  const {item} = await client
+async function updateContainerItem(containerId, itemBody) {
+  const {resource: item} = await client
     .database(databaseId)
     .container(containerId)
     .item(itemBody.id)
@@ -131,32 +109,9 @@ async function updateContainerItem(containerId, id, itemBody) {
 }
 
 /**
- * Get an item from a container by id
- */
-async function queryContainerById(containerId, id) {
-  const {item} = client.database(databaseId).container(containerId).item(id);
-
-  return item;
-}
-
-/**
  * Query the container using SQL
  */
 async function queryContainer(containerId, query) {
-  // console.log(`Querying container:\n${config.container.id}`)
-
-  // query to return all children in a family
-  // Including the partition key value of lastName in the WHERE filter results in a more efficient query
-  // const querySpec = {
-  //   query: 'SELECT VALUE r.children FROM root r WHERE r.lastName = @lastName',
-  //   parameters: [
-  //     {
-  //       name: '@lastName',
-  //       value: 'Andersen'
-  //     }
-  //   ]
-  // }
-
   const {resources: results} = await client
     .database(databaseId)
     .container(containerId)
@@ -166,26 +121,47 @@ async function queryContainer(containerId, query) {
   return results;
 }
 
+async function getById(containerId, itemId) {
+  const {resource: item} = await client
+    .database(databaseId)
+    .container(containerId)
+    .item(itemId).read();
+  
+  return item;
+}
+
 /**
  * Remove an item
  */
 async function deleteContainerItem(containerId, itemBody) {
-  const {item} = await client
+  const item = await client
     .database(databaseId)
     .container(containerId)
     .item(itemBody.id)
     .delete(itemBody);
 
-  console.log(`Deleted item: ${item.id}`);
+  console.log(`Deleted item: ${itemBody.id}`);
 
-  return item;
+  return itemBody;
+}
+
+function stripMetadata(item, leaveId) {
+  if (!leaveId) {
+    delete item.id;
+  }
+  delete item._rid;
+  delete item._self;
+  delete item._etag;
+  delete item._attachments;
+  delete item._ts;
 }
 
 module.exports = {
   setup,
   createContainerItem,
   updateContainerItem,
-  queryContainerById,
+  getById,
   queryContainer,
-  deleteContainerItem
+  deleteContainerItem,
+  stripMetadata
 };

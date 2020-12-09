@@ -3,30 +3,63 @@
 const cosmos = require('../utils/cosmosHelper');
 const containerId = 'USERS';
 
-const get = async id => {
-  return await cosmos.queryContainerById(containerId, id);
+const get = async email => {
+  const querySpec = {
+    query: 'SELECT * from c WHERE c.email = @email',
+    parameters: [
+      {
+        name: '@email',
+        value: email
+      }
+    ]
+  };
+
+  return (await cosmos.queryContainer(containerId, querySpec))[0];
 };
 
 const getAll = async () => {
-  return await cosmos.queryContainer();
+  const querySpec = {
+    query: 'SELECT * from c'
+  };
+  return await cosmos.queryContainer(containerId, querySpec);
 };
 
 const create = async user => {
-  return await cosmos.createContainerItem();
+  const {resource: createdItem} = await cosmos.createContainerItem(
+    containerId,
+    user
+  );
+  return createdItem;
 };
 
-const update = async (id, user) => {
-  return await cosmos.updateContainerItem();
+const update = async (email, updatedUser) => {
+  const user = await get(email);
+
+  if (user) {
+    user.firstName = updatedUser.firstName;
+    user.lastName = updatedUser.lastName;
+    user.address = updatedUser.address;
+
+    const item = await cosmos.updateContainerItem(
+      containerId,
+      user
+    );
+
+    return item;
+  } else {
+    throw new Error('User not found');
+  }
 };
 
-const remove = async id => {
-  return await cosmos.deleteContainerItem();
-};
-
-const findUsers = async (id, group) => {
-  return User.find({_id: {$ne: id}, firstName: {$ne: null}}).catch(error => {
-    throw error;
-  });
+const remove = async email => {
+  const user = await get(email);
+  
+  if (user) {
+    const item = await cosmos.deleteContainerItem(containerId, user);
+    return item;
+  } else {
+    throw new Error('User not found');
+  }
 };
 
 module.exports = {
@@ -34,6 +67,5 @@ module.exports = {
   getAll,
   create,
   update,
-  remove,
-  findUsers
+  remove
 };

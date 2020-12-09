@@ -1,6 +1,28 @@
 'use strict';
 
 const notificationRepo = require('../repositories/notificationRepo');
+const {stripMetadata} = require('../utils/cosmosHelper');
+const Notification = require('../models/notification');
+
+const createNotification = async request => {
+  const newNotification = new Notification(
+    request.vparams.userId,
+    request.vparams.message
+  );
+  const created = await notificationRepo.create(newNotification);
+  stripMetadata(created, true);
+
+  return created;
+};
+
+const markNotificationSeen = async request => {
+  const notification = await notificationRepo.markSeen(
+    request.vparams.notificationId
+  );
+  stripMetadata(notification, true);
+
+  return notification;
+};
 
 const getUserNotifications = async request => {
   let notifications;
@@ -11,55 +33,22 @@ const getUserNotifications = async request => {
     notifications = await notificationRepo.getAll(request.vparams.userId);
   }
 
-  const response = {
-    notifications: []
-  };
-  notifications.forEach(notification => {
-    const cleaned = JSON.parse(JSON.stringify(notification));
-    cleaned.id = cleaned._id;
-    delete cleaned._id;
-    delete cleaned.__v;
+  for (let n of notifications) {
+    stripMetadata(n, true);
+  }
 
-    response.notifications.push(cleaned);
-  });
-
-  return response;
+  return notifications;
 };
 
-const markNotificationSeen = async request => {
-  const notification = await notificationRepo.getById(
-    request.vparams.notificationId
-  );
-  notification.seen = true;
-  const updated = await notificationRepo.update(notification._id, notification);
+const deleteNotification = async request => {
+  const removed = await notificationRepo.deleteNotification(request.vparams.notificationId);
 
-  const response = JSON.parse(JSON.stringify(updated));
-  response.id = updated._id;
-  delete response._id;
-  delete response.__v;
-
-  return response;
-};
-
-const createNotification = async request => {
-  const newNotification = {
-    userId: request.vparams.userId,
-    message: request.vparams.message,
-    date: new Date(),
-    seen: false
-  };
-
-  const created = await notificationRepo.create(newNotification);
-  const cleaned = JSON.parse(JSON.stringify(created));
-  cleaned.id = cleaned._id;
-  delete cleaned._id;
-  delete cleaned.__v;
-
-  return cleaned;
+  return removed;
 };
 
 module.exports = {
   getUserNotifications,
   markNotificationSeen,
-  createNotification
+  createNotification,
+  deleteNotification
 };

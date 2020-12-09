@@ -1,74 +1,77 @@
 'use strict';
 
 const userRepo = require('../repositories/userRepo');
+const groupRepo = require('../repositories/groupRepo');
+const {stripMetadata} = require('../utils/cosmosHelper');
+const User = require('../models/user');
+const Exception = require('../types/exception');
 
 const getAllUsersHandler = async () => {
   const users = await userRepo.getAll();
-  const response = JSON.parse(JSON.stringify(users));
-  response.forEach(user => {
-    user.id = user._id;
-    delete user._id;
-    delete user.__v;
-  });
-
-  return response;
+  for (let user of users) {
+    stripMetadata(user, false);
+  }
+  return users;
 };
 
 const getUserHandler = async request => {
-  let user = await userRepo.get(request.vparams.id);
+  const email = request.vparams.email;
+  let user = await userRepo.get(email);
 
-  if (!user) {
-    user = await userRepo.create({
-      _id: request.vparams.id
-    });
+  if (user) {
+    stripMetadata(user, false);
+  } else {
+    await userRepo.create(new User(email));
+    user = new User(email);
   }
 
-  const response = JSON.parse(JSON.stringify(user));
-  response.id = user._id;
-  delete response._id;
-  delete response.__v;
-
-  return response;
+  return user;
 };
 
 const updateUserHandler = async request => {
-  const updated = await userRepo.update(
-    request.vparams.id,
-    request.vparams.user
-  );
+  const updated = {...request.vparams.user};
 
-  const response = JSON.parse(JSON.stringify(updated));
-  response.id = updated._id;
-  delete response._id;
-  delete response.__v;
+  try {
+    const user = await userRepo.update(
+      request.vparams.email,
+      new User(
+        request.vparams.email,
+        updated.firstName,
+        updated.lastName,
+        updated.address
+      )
+    );
 
-  return response;
+    stripMetadata(user, false);
+
+    return user;
+  } catch (err) {
+    throw new Exception(404, err.message);
+  }
 };
 
 const removeUserHandler = async request => {
-  const removed = await userRepo.remove(request.vparams.id);
+  try {
+    const removed = await userRepo.remove(request.vparams.email);
+    if (removed) {
+      stripMetadata(removed, false);
+    }
 
-  const response = JSON.parse(JSON.stringify(removed));
-  response.id = removed._id;
-  delete response._id;
-  delete response.__v;
-
-  return response;
+    return removed;
+  } catch (err) {
+    throw new Exception(404, err.message);
+  }
 };
 
 const getUserGroupHandler = async request => {
-  const group = await userRepo.findUsers(request.vparams.id);
+  const group = await groupRepo.getByUserId(request.vparams.email);
 
-  const response = {
-    members: JSON.parse(JSON.stringify(group))
-  };
-
-  response.members.forEach(member => {
-    member.id = member._id;
-    delete member._id;
-    delete member.__v;
-  });
-  return response;
+  if (group) {
+    stripMetadata(group, false);
+    return group;
+  } else {
+    throw new Exception(404, 'Group does not exist.');
+  }
 };
 
 module.exports = {
