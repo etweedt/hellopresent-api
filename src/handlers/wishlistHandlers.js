@@ -2,125 +2,59 @@
 
 const wishlistRepo = require('../repositories/wishlistRepo');
 const userRepo = require('../repositories/userRepo');
+const {stripMetadata} = require('../utils/cosmosHelper');
+const Wishlist = require('../models/wishlist');
+const WishlistItem = require('../models/wishlistItem');
 const Exception = require('../types/exception');
 const notificationHelper = require('../utils/notificationHelper');
 
 const getWishlists = async () => {
   const wishlists = await wishlistRepo.get();
-  const response = [];
+  stripMetadata(wishlists, false);
 
-  wishlists.forEach(wl => {
-    const newList = JSON.parse(JSON.stringify(wl));
-    newList.id = wl._id;
-    delete newList._id;
-    delete newList.__v;
-
-    response.push(newList);
-  });
-
-  return response;
+  return wishlists;
 };
 
 const getWishlistsVisibleByUser = async request => {
-  const wishlists = await wishlistRepo.getForUser(request.vparams.id);
-  const response = {
-    wishlists: []
-  };
+  const wishlists = await wishlistRepo.getForUser(request.vparams.email);
+  stripMetadata(wishlists, false);
 
-  wishlists.forEach(wl => {
-    const newList = JSON.parse(JSON.stringify(wl));
-    newList.id = wl._id;
-    delete newList._id;
-    delete newList.__v;
-
-    response.wishlists.push(newList);
-  });
-
-  return response;
+  return {wishlists};
 };
 
 const getUserWishlist = async request => {
-  let wishlist = await wishlistRepo.getUser(request.vparams.id);
+  let wishlist = (await wishlistRepo.getForUser(request.vparams.email))[0];
 
   if (!wishlist) {
-    wishlist = await wishlistRepo.create(request.vparams.id);
+    wishlist = await wishlistRepo.create(new Wishlist(request.vparams.email));
   }
 
-  const response = {
-    wishlist: JSON.parse(JSON.stringify(wishlist))
-  };
-  response.wishlist.id = wishlist._id;
-  delete response.wishlist._id;
-  delete response.wishlist.__v;
+  stripMetadata(wishlist, false);
 
-  response.wishlist.items.forEach(item => {
-    item.id = item._id;
-    delete item._id;
-  });
-
-  return response;
+  return {wishlist};
 };
 
 const updateUserWishlist = async request => {
-  const wishlist = await wishlistRepo.update(
-    request.vparams.id,
-    request.vparams.wishlist
-  );
+  const wishlist = (await wishlistRepo.getForUser(request.vparams.email))[0];
+  wishlist.items = request.vparams.wishlist.items;
 
-  const response = {
-    wishlist: JSON.parse(JSON.stringify(wishlist))
-  };
-
-  response.wishlist.id = wishlist._id;
-  delete response._id;
-  delete response.__v;
-
-  response.wishlist.items.forEach(item => {
-    item.id = item._id;
-    delete item._id;
-  });
+  const updated = await wishlistRepo.update(wishlist);
 
   notificationHelper.updatedWishlist(
-    request.vparams.id,
+    request.vparams.email,
     request.vparams.message ? request.vparams.message : null
   );
 
-  return response;
+  stripMetadata(updated, false);
+
+  return {wishlist: updated};
 };
 
 const getUserClaims = async request => {
-  const claims = await wishlistRepo.getClaims(request.vparams.id);
+  const claims = await wishlistRepo.getClaims(request.vparams.email);
+  stripMetadata(claims, false);
 
-  const response = {
-    claims: []
-  };
-
-  const lists = JSON.parse(JSON.stringify(claims));
-
-  for (const list of lists) {
-    const userInfo = await userRepo.get(list.email);
-
-    const newClaim = {
-      email: list.email,
-      firstName: userInfo.firstName,
-      lastName: userInfo.lastName,
-      address: userInfo.address,
-      id: list._id,
-      items: []
-    };
-
-    list.items.forEach(item => {
-      if (item.claimedBy === request.vparams.id) {
-        item.id = item._id;
-        delete item._id;
-        newClaim.items.push(item);
-      }
-    });
-
-    response.claims.push(newClaim);
-  }
-
-  return response;
+  return {claims};
 };
 
 const claimItem = async request => {

@@ -37,11 +37,13 @@ const getUserNotifications = async request => {
     stripMetadata(n, true);
   }
 
-  return notifications;
+  return {notifications};
 };
 
 const deleteNotification = async request => {
-  const removed = await notificationRepo.deleteNotification(request.vparams.notificationId);
+  const removed = await notificationRepo.deleteNotification(
+    request.vparams.notificationId
+  );
 
   return removed;
 };

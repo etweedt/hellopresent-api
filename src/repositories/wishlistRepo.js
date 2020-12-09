@@ -1,61 +1,60 @@
 'use strict';
 
-const Wishlist = require('../models/wishlist');
+const cosmos = require('../utils/cosmosHelper');
+const containerId = 'WISHLISTS';
 
-const get = () => {
-  return Wishlist.find().catch(error => {
-    throw error;
-  });
+const get = async () => {
+  const querySpec = {
+    query: 'SELECT * from c'
+  };
+
+  return await cosmos.queryContainer(containerId, querySpec);
 };
 
-const getById = id => {
-  return Wishlist.findById(id).catch(error => {
-    throw error;
-  });
+const getById = async id => {
+  return await cosmos.getById(containerId, id);
 };
 
-const getForUser = userEmail => {
-  return Wishlist.find({email: {$ne: userEmail}}).catch(error => {
-    throw error;
-  });
+const getForUser = async userEmail => {
+  const querySpec = {
+    query: 'SELECT * from c WHERE c.email = @email',
+    parameters: [
+      {
+        name: '@email',
+        value: userEmail
+      }
+    ]
+  };
+
+  return await cosmos.queryContainer(containerId, querySpec);
 };
 
-const getUser = userEmail => {
-  return Wishlist.findOne({email: userEmail}).catch(error => {
-    throw error;
-  });
+const create = async wishlist => {
+  return await cosmos.createContainerItem(containerId, wishlist);
 };
 
-const create = userEmail => {
-  return Wishlist.create({
-    email: userEmail,
-    items: []
-  }).catch(error => {
-    throw error;
-  });
+const update = async wishlist => {
+  return await cosmos.updateContainerItem(containerId, wishlist);
 };
 
-const update = (userEmail, newList) => {
-  return Wishlist.findOneAndUpdate({email: userEmail}, newList, {
-    new: true
-  }).catch(error => {
-    throw error;
-  });
-};
+const getClaims = async userEmail => {
+  const querySpec = {
+    query: 'SELECT [w.items] AS item FROM Wishlist w WHERE w.items.claimedBy = @email',
+    parameters: [
+      {
+        name: '@email',
+        value: userEmail
+      }
+    ]
+  };
 
-const getClaims = userEmail => {
-  return Wishlist.find({items: {$elemMatch: {claimedBy: userEmail}}}).catch(
-    error => {
-      throw error;
-    }
-  );
+  return await cosmos.queryContainer(containerId, querySpec);
 };
 
 module.exports = {
   get,
   getById,
   getForUser,
-  getUser,
   create,
   update,
   getClaims
