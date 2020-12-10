@@ -6,7 +6,6 @@ const wishlistRepo = require('../repositories/wishlistRepo');
 const {stripMetadata} = require('../utils/cosmosHelper');
 const User = require('../models/user');
 const Exception = require('../types/exception');
-const groupHandlers = require('./groupHandlers');
 
 const getAllUsersHandler = async () => {
   const users = await userRepo.getAll();
@@ -85,6 +84,7 @@ const removeUserHandler = async request => {
       removedWishlist
     };
   } catch (err) {
+    console.log(err);
     throw new Exception(404, err.message);
   }
 };

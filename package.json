@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon ./src/index.js",
-    "start:prod": "node ./src/index.js"
+    "start:prod": "node ./src/index.js",
+    "start:redistest": "nodemon ./src/utils/redisHelper.js"
   },
   "author": "Eric Tweedt",
   "license": "ISC",
@@ -22,6 +23,7 @@
     "koa2-cors": "^2.0.6",
     "mongodb": "^3.6.3",
     "mongoose": "^5.10.15",
+    "redis": "^3.0.2",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
