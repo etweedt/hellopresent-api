@@ -19,7 +19,10 @@ const get = promisify(client.get).bind(client);
 const del = promisify(client.del).bind(client);
 
 module.exports = {
-  set,
+  set: (key, value) => {
+    // 2 hour cache
+    set(key, value, 'EX', 7200);
+  },
   get,
   del
 };
