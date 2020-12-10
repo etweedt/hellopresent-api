@@ -24,5 +24,8 @@ module.exports = {
         path: '/Notification'
       }
     ]
+  },
+  redis: {
+    endpoint: 'redis://168.61.150.190'
   }
 };

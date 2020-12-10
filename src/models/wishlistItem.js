@@ -1,5 +1,7 @@
 'use strict';
 
+// This class is mostly for reference or in case I split the items into their
+// own separate table in the db.
 class WishlistItem {
   constructor(name, description, url, notes, priceTier, claimedBy) {
     this.name = name ? name : '';

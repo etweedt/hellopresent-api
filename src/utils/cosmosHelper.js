@@ -134,7 +134,7 @@ async function getById(containerId, itemId) {
  * Remove an item
  */
 async function deleteContainerItem(containerId, itemBody) {
-  const item = await client
+  await client
     .database(databaseId)
     .container(containerId)
     .item(itemBody.id)
