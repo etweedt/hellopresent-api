@@ -1,7 +1,6 @@
 'use strict';
 
 const cosmos = require('../utils/cosmosHelper');
-const redis = require('../utils/redisHelper');
 
 const containerId = 'WISHLISTS';
 
@@ -10,19 +9,9 @@ const get = async () => {
     query: 'SELECT * from c'
   };
 
-  let wishlists = await redis.get('wishlists-all-key');
+  let wishlists = await cosmos.queryContainer(containerId, querySpec);
 
-  if (wishlists) {
-    wishlists = JSON.parse(wishlists);
-  } else {
-    wishlists = await cosmos.queryContainer(containerId, querySpec);
-
-    if (wishlists) {
-      await redis.set('wishlists-all-key', JSON.stringify(wishlists));
-    }
-  }
-
-  return await cosmos.queryContainer(containerId, querySpec);
+  return wishlists;
 };
 
 const getForUser = async userEmail => {
@@ -36,38 +25,22 @@ const getForUser = async userEmail => {
     ]
   };
 
-  let wishlist = await redis.get(`${userEmail}-wishlist`);
-
-  if (wishlist) {
-    wishlist = JSON.parse(wishlist);
-  } else {
-    wishlist = (await cosmos.queryContainer(containerId, querySpec))[0];
-
-    if (wishlist) {
-      await redis.set(`${userEmail}-wishlist`, JSON.stringify(wishlist));
-    }
-  }
+  let wishlist = (await cosmos.queryContainer(containerId, querySpec))[0];
 
   return wishlist;
 };
 
 const create = async wishlist => {
-  await redis.del('wishlists-all-key');
   return await cosmos.createContainerItem(containerId, wishlist);
 };
 
 const update = async wishlist => {
-  await redis.del('wishlists-all-key');
-  await redis.del(`${wishlist.email}-wishlist`);
   return await cosmos.updateContainerItem(containerId, wishlist);
 };
 
 const remove = async email => {
   const list = await getForUser(email);
   await cosmos.deleteContainerItem(containerId, list);
-
-  await redis.del('wishlists-all-key');
-  await redis.del(`${email}-wishlist`);
 
   return list;
 };

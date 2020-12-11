@@ -1,14 +1,11 @@
 'use strict';
 
 const cosmos = require('../utils/cosmosHelper');
-const redis = require('../utils/redisHelper');
 
 const containerId = 'NOTIFICATIONS';
 
 const create = async notification => {
   const item = await cosmos.createContainerItem(containerId, notification);
-  await redis.del('notifications-all');
-  await redis.del('notifications-unseen');
   return item;
 };
 
@@ -31,17 +28,7 @@ const getUnseen = async userId => {
     ]
   };
 
-  let notifications = await redis.get('notifications-unseen');
-
-  if (notifications) {
-    notifications = JSON.parse(notifications);
-  } else {
-    notifications = await cosmos.queryContainer(containerId, querySpec);
-
-    if (notifications) {
-      await redis.set('notifications-unseen', JSON.stringify(notifications));
-    }
-  }
+  let notifications = await cosmos.queryContainer(containerId, querySpec);
 
   return notifications;
 };
@@ -57,17 +44,7 @@ const getAll = async userId => {
     ]
   };
 
-  let notifications = await redis.get('notifications-all');
-  
-  if (notifications) {
-    notifications = JSON.parse(notifications);
-  } else {
-    notifications = await cosmos.queryContainer(containerId, querySpec);
-
-    if (notifications) {
-      await redis.set('notifications-all', JSON.stringify(notifications));
-    }
-  }
+  let notifications = await cosmos.queryContainer(containerId, querySpec);
 
   return notifications;
 };
@@ -81,18 +58,12 @@ const markSeen = async notificationId => {
     notification
   );
 
-  await redis.del('notifications-all');
-  await redis.del('notifications-unseen');
-
   return item;
 };
 
 const deleteNotification = async notificationId => {
   const notification = await cosmos.getById(containerId, notificationId);
   const deleted = await cosmos.deleteContainerItem(containerId, notification);
-
-  await redis.del('notifications-all');
-  await redis.del('notifications-unseen');
 
   return deleted;
 };
