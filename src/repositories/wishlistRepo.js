@@ -22,7 +22,7 @@ const get = async () => {
     }
   }
 
-  return await cosmos.queryContainer(containerId, querySpec);
+  return wishlists;
 };
 
 const getForUser = async userEmail => {
