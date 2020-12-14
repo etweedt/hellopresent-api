@@ -54,6 +54,7 @@ const updateUserHandler = async request => {
 const removeUserHandler = async request => {
   try {
     const group = await groupRepo.getByUserId(request.vparams.email);
+    const allGroups = await groupRepo.getAll();
 
     if (group) {
       // Clean up any item claims from the removed member
@@ -72,6 +73,11 @@ const removeUserHandler = async request => {
           wishlistRepo.update(memberList);
         }
       }
+    }
+
+    // Clean up user from other users who have added them to their groups
+    for (let group of allGroups) {
+      let found = group.members
     }
 
     const removedUser = await userRepo.remove(request.vparams.email);
