@@ -26,6 +26,6 @@ module.exports = {
     ]
   },
   redis: {
-    endpoint: 'redis://168.61.150.190'
+    endpoint: 'redis://40.122.70.113'
   }
 };
